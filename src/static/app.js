@@ -20,16 +20,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
-        // Build participants list HTML
-        let participantsHTML = "";
+        // Build participants list safely to prevent XSS
+        let participantsSection;
         if (details.participants.length > 0) {
-          participantsHTML = `
-            <ul class="participants-list">
-              ${details.participants.map(email => `<li>${email}</li>`).join("")}
-            </ul>
-          `;
+          const ul = document.createElement("ul");
+          ul.className = "participants-list";
+          details.participants.forEach(email => {
+            const li = document.createElement("li");
+            li.textContent = email;
+            ul.appendChild(li);
+          });
+          participantsSection = ul;
         } else {
-          participantsHTML = `<p class="no-participants">No participants yet.</p>`;
+          const p = document.createElement("p");
+          p.className = "no-participants";
+          p.textContent = "No participants yet.";
+          participantsSection = p;
         }
 
         activityCard.innerHTML = `
@@ -39,9 +45,11 @@ document.addEventListener("DOMContentLoaded", () => {
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
           <div class="participants-section">
             <strong>Participants:</strong>
-            ${participantsHTML}
           </div>
         `;
+
+        // Append the participantsSection safely
+        activityCard.querySelector(".participants-section").appendChild(participantsSection);
 
         activitiesList.appendChild(activityCard);
 
